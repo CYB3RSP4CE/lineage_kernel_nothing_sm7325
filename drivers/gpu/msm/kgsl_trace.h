@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2011-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2021, The Linux Foundation. All rights reserved.
  */
 
 #if !defined(_KGSL_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
@@ -901,39 +901,33 @@ TRACE_EVENT(kgsl_regwrite,
 );
 
 TRACE_EVENT(kgsl_register_event,
-		TP_PROTO(unsigned int id, unsigned int timestamp, void *func,
-			enum kgsl_priority prio),
-		TP_ARGS(id, timestamp, func, prio),
+		TP_PROTO(unsigned int id, unsigned int timestamp, void *func),
+		TP_ARGS(id, timestamp, func),
 		TP_STRUCT__entry(
 			__field(unsigned int, id)
 			__field(unsigned int, timestamp)
 			__field(void *, func)
-			__field(enum kgsl_priority, prio)
 		),
 		TP_fast_assign(
 			__entry->id = id;
 			__entry->timestamp = timestamp;
 			__entry->func = func;
-			__entry->prio = prio;
 		),
 		TP_printk(
-			"ctx=%u ts=%u cb=%pS prio=%s",
-			__entry->id, __entry->timestamp, __entry->func,
-			prio_to_string(__entry->prio))
+			"ctx=%u ts=%u cb=%pS",
+			__entry->id, __entry->timestamp, __entry->func)
 );
 
 TRACE_EVENT(kgsl_fire_event,
 		TP_PROTO(unsigned int id, unsigned int ts,
-			unsigned int type, unsigned int age, void *func,
-			enum kgsl_priority prio),
-		TP_ARGS(id, ts, type, age, func, prio),
+			unsigned int type, unsigned int age, void *func),
+		TP_ARGS(id, ts, type, age, func),
 		TP_STRUCT__entry(
 			__field(unsigned int, id)
 			__field(unsigned int, ts)
 			__field(unsigned int, type)
 			__field(unsigned int, age)
 			__field(void *, func)
-			__field(enum kgsl_priority, prio)
 		),
 		TP_fast_assign(
 			__entry->id = id;
@@ -941,16 +935,14 @@ TRACE_EVENT(kgsl_fire_event,
 			__entry->type = type;
 			__entry->age = age;
 			__entry->func = func;
-			__entry->prio = prio;
 		),
 		TP_printk(
-			"ctx=%u ts=%u type=%s age=%u cb=%pS prio=%s",
+			"ctx=%u ts=%u type=%s age=%u cb=%pS",
 			__entry->id, __entry->ts,
 			__print_symbolic(__entry->type,
 				{ KGSL_EVENT_RETIRED, "retired" },
 				{ KGSL_EVENT_CANCELLED, "cancelled" }),
-			__entry->age, __entry->func,
-			prio_to_string(__entry->prio))
+			__entry->age, __entry->func)
 );
 
 TRACE_EVENT(kgsl_active_count,
@@ -1343,6 +1335,80 @@ TRACE_EVENT(kgsl_drawobj_timeline,
 	),
 	TP_printk("timeline=%u seqno=%llu",
 		__entry->timeline, __entry->seqno
+	)
+);
+
+TRACE_EVENT(kgsl_pool_add_page,
+	TP_PROTO(int order, u32 count),
+	TP_ARGS(order, count),
+	TP_STRUCT__entry(
+		__field(int, order)
+		__field(u32, count)
+	),
+	TP_fast_assign(
+		__entry->order = order;
+		__entry->count = count;
+	),
+	TP_printk("order=%d count=%u",
+		__entry->order, __entry->count
+	)
+);
+
+TRACE_EVENT(kgsl_pool_get_page,
+	TP_PROTO(int order, u32 count),
+	TP_ARGS(order, count),
+	TP_STRUCT__entry(
+		__field(int, order)
+		__field(u32, count)
+	),
+	TP_fast_assign(
+		__entry->order = order;
+		__entry->count = count;
+	),
+	TP_printk("order=%d count=%u",
+		__entry->order, __entry->count
+	)
+);
+
+TRACE_EVENT(kgsl_pool_alloc_page_system,
+	TP_PROTO(int order),
+	TP_ARGS(order),
+	TP_STRUCT__entry(
+		__field(int, order)
+	),
+	TP_fast_assign(
+		__entry->order = order;
+	),
+	TP_printk("order=%d",
+		__entry->order
+	)
+);
+
+TRACE_EVENT(kgsl_pool_try_page_lower,
+	TP_PROTO(int order),
+	TP_ARGS(order),
+	TP_STRUCT__entry(
+		__field(int, order)
+	),
+	TP_fast_assign(
+		__entry->order = order;
+	),
+	TP_printk("order=%d",
+		__entry->order
+	)
+);
+
+TRACE_EVENT(kgsl_pool_free_page,
+	TP_PROTO(int order),
+	TP_ARGS(order),
+	TP_STRUCT__entry(
+		__field(int, order)
+	),
+	TP_fast_assign(
+		__entry->order = order;
+	),
+	TP_printk("order=%d",
+		__entry->order
 	)
 );
 
