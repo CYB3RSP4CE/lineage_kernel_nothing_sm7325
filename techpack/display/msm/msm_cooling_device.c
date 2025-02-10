@@ -55,6 +55,7 @@ static struct thermal_cooling_device_ops sde_cdev_ops = {
 	.set_cur_state = sde_cdev_set_cur_brightness,
 };
 
+#ifdef CONFIG_QCOM_BACKLIGHT_KIMOCODER
 struct sde_cdev *backlight_cdev_register(struct device *dev,
 					struct backlight_device *bd,
 					struct notifier_block *n)
@@ -90,7 +91,9 @@ struct sde_cdev *backlight_cdev_register(struct device *dev,
 
 	return disp_cdev;
 }
+#endif
 
+#ifdef CONFIG_QCOM_BACKLIGHT_KIMOCODER
 void backlight_cdev_unregister(struct sde_cdev *cdev)
 {
 	if (!cdev)
@@ -98,3 +101,4 @@ void backlight_cdev_unregister(struct sde_cdev *cdev)
 
 	thermal_cooling_device_unregister(cdev->cdev);
 }
+#endif
