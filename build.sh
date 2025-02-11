@@ -42,7 +42,7 @@ CLANG_DIR="$TC_DIR/linux-x86/clang-r547379"
 AK3_DIR="$HOME/AnyKernel3"
 DEFCONFIG="spacewar_defconfig"
 
-MAKE_PARAMS="O=out ARCH=arm64 CC=clang CLANG_TRIPLE=$TC_DIR/bin/llvm- LLVM=1 LLVM_IAS=1 \
+MAKE_PARAMS="ARCH=arm64 CC=clang CLANG_TRIPLE=$TC_DIR/bin/llvm- LLVM=1 LLVM_IAS=1 \
 	CROSS_COMPILE=aarch64-linux-gnu-"
 
 export PATH="$CLANG_DIR/bin:$PATH"
@@ -50,7 +50,7 @@ export PATH="$CLANG_DIR/bin:$PATH"
 # Regenerate defconfig, if requested
 if [[ "$FLAG_REGEN_DEFCONFIG" == 'y' ]]; then
     make $MAKE_PARAMS $DEFCONFIG savedefconfig
-    cp out/defconfig arch/arm64/configs/$DEFCONFIG
+    cp defconfig arch/arm64/configs/$DEFCONFIG
     echo -e "\nSuccessfully regenerated defconfig at $DEFCONFIG"
     exit
 fi
@@ -58,18 +58,18 @@ fi
 # Clean build, if requested
 if [[ "$FLAG_CLEAN_BUILD" == 'y' ]]; then
     echo -e "\nCleaning output folder..."
-    rm -rf out
+    #rm -rf out
 fi
 
-mkdir -p out
+#mkdir -p out
 make $MAKE_PARAMS $DEFCONFIG
 
 echo -e "\nStarting compilation...\n"
 make -j"$(nproc --all)" $MAKE_PARAMS || exit $?
 make -j"$(nproc --all)" $MAKE_PARAMS INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
 
-kernel="out/arch/arm64/boot/Image"
-dts_dir="out/arch/arm64/boot/dts/vendor/qcom"
+kernel="arch/arm64/boot/Image"
+dts_dir="arch/arm64/boot/dts/vendor/qcom"
 
 if [[ -f "$kernel" && -d "$dts_dir" ]]; then
 	echo -e "\nKernel compiled successfully! Zipping up...\n"
@@ -82,20 +82,20 @@ if [[ -f "$kernel" && -d "$dts_dir" ]]; then
 		exit 1
 	fi
 
-	KERNEL_VERSION=$(cat out/include/config/kernel.release)
+	KERNEL_VERSION=$(cat include/config/kernel.release)
 	cp "$kernel" AnyKernel3
 	cat "$dts_dir"/*.dtb > AnyKernel3/dtb
 	python3 scripts/mkdtboimg.py create AnyKernel3/dtbo.img --page_size=4096 "$dts_dir"/*.dtbo
 
 	mkdir -p AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION
-	cp $(find out/drivers/* -name '*.ko') AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/
-	cp out/modules/lib/modules/$KERNEL_VERSION/modules.{alias,dep,softdep} AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/
-	cp out/modules/lib/modules/$KERNEL_VERSION/modules.order AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/modules.load
-	cp out/modules/lib/modules/$KERNEL_VERSION/modules.* AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/
+	cp $(find drivers/* -name '*.ko') AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/
+	cp modules/lib/modules/$KERNEL_VERSION/modules.{alias,dep,softdep} AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/
+	cp modules/lib/modules/$KERNEL_VERSION/modules.order AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/modules.load
+	cp modules/lib/modules/$KERNEL_VERSION/modules.* AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/
 	sed -i 's/\(kernel\/[^: ]*\/\)\([^: ]*\.ko\)/\/vendor\/lib\/modules\/\2/g' AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/modules.dep
 	sed -i 's/.*\///g' AnyKernel3/modules/vendor/lib/modules/$KERNEL_VERSION/modules.load
 
-	rm -rf out/arch/arm64/boot out/modules
+	rm -rf arch/arm64/boot modules
 
 	cd AnyKernel3 || exit
 	zip -r9 "../$ZIPNAME" * -x .git README.md *placeholder
